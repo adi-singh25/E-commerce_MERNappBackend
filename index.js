@@ -436,3 +436,89 @@ app.listen(port,(error)=>{
 })
 
 
+
+
+// for payment nofify 
+
+// Creating the Order Schema
+const Order = mongoose.model("Order", {
+    customerName: {
+        type: String,
+        required: true,
+    },
+    customerEmail: {
+        type: String,
+        required: true,
+    },
+    items: [{
+        productId: Number,
+        name: String,
+        quantity: Number,
+        price: Number,
+        total: Number,
+    }],
+    totalAmount: {
+        type: Number,
+        required: true,
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now,
+    }
+});
+
+// POST route to place an order
+app.post("/placeorder", async (req, res) => {
+    const { customerName, customerEmail, items, totalAmount, timestamp } = req.body;
+
+    // Create a new order object
+    const newOrder = new Order({
+        customerName,
+        customerEmail,
+        items,
+        totalAmount,
+        timestamp,
+    });
+
+    try {
+        // Save the order to the database
+        await newOrder.save();
+
+        // Send a response indicating success
+        res.json({
+            success: true,
+            message: "Order placed successfully!",
+        });
+    } catch (err) {
+        console.error("Error placing order:", err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to place the order. Please try again.",
+        });
+    }
+});
+
+
+
+// get from data for admin orderedlist
+
+
+// GET route to fetch all orders
+app.get("/orders", async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ timestamp: -1 }); // latest first
+        res.json(orders);
+    } catch (err) {
+        console.error("Error fetching orders:", err);
+        res.status(500).json({ error: "Failed to fetch orders" });
+    }
+});
+
+
+
+
+
+
+
+
+
