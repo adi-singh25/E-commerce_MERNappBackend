@@ -8,11 +8,23 @@ const path = require("path");
 const cors = require("cors");
 
 // ✅ Use CORS before any routes
-app.use(cors({
-    origin: "https://e-commerce-application-1-4ktx.onrender.com",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-}));
+     const allowedOrigins = [
+         "https://e-commerce-mernappfrontend.onrender.com",
+         "https://e-commerce-application-1-4ktx.onrender.com"
+     ];
+
+     app.use(cors({
+         origin: function (origin, callback) {
+             if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+                 callback(null, true);
+             } else {
+                 callback(new Error('Not allowed by CORS'));
+             }
+         },
+         methods: ["GET", "POST", "PUT", "DELETE"],
+         credentials: true
+     }));
+     
 
 app.use(express.json());
 app.use('/images', express.static('upload/images'));
