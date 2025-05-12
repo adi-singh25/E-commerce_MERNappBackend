@@ -7,24 +7,23 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 
-// ✅ Use CORS before any routes
-     const allowedOrigins = [
-         "https://e-commerce-mernappfrontend.onrender.com",
-         "https://e-commerce-application-1-4ktx.onrender.com"
-     ];
+// ✅ CORS Configuration
+const allowedOrigins = [
+    "https://e-commerce-mernappfrontend.onrender.com",
+    "https://e-commerce-application-1-4ktx.onrender.com"
+];
 
-     app.use(cors({
-         origin: function (origin, callback) {
-             if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-                 callback(null, true);
-             } else {
-                 callback(new Error('Not allowed by CORS'));
-             }
-         },
-         methods: ["GET", "POST", "PUT", "DELETE"],
-         credentials: true
-     }));
-     
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
 
 app.use(express.json());
 app.use('/images', express.static('upload/images'));
@@ -32,29 +31,30 @@ app.use('/images', express.static('upload/images'));
 // ✅ Connect to MongoDB
 mongoose.connect("mongodb+srv://STRIKER:Ecommerce%4025@cluster0.q0kgo.mongodb.net/E-commerce");
 
-// ✅ Multer setup
+// ✅ Multer Setup
 const storage = multer.diskStorage({
     destination: './upload/images',
     filename: (req, file, cb) => {
-        return cb(null, `${file.originalname}_${Date.now()}${path.extname(file.originalname)}`);
+        cb(null, `${file.originalname}_${Date.now()}${path.extname(file.originalname)}`);
     }
 });
 const upload = multer({ storage });
 
-// ✅ Basic test route
+// ✅ Basic Route
 app.get("/", (req, res) => {
     res.send("Express App is Running");
 });
 
-// ✅ Image upload endpoint
+// ✅ HTTPS Image Upload Endpoint
 app.post("/upload", upload.single('product'), (req, res) => {
+    const baseUrl = "https://e-commerce-mernappbackend-1.onrender.com";
     res.json({
         success: 1,
-        image_url: `https://e-commerce-mernappbackend-1.onrender.com/images/${req.file.filename}`
+        image_url: `${baseUrl}/images/${req.file.filename}`
     });
 });
 
-// ✅ Product schema
+// ✅ Product Schema
 const Product = mongoose.model("Product", {
     id: Number,
     name: String,
@@ -66,7 +66,7 @@ const Product = mongoose.model("Product", {
     avilable: { type: Boolean, default: true }
 });
 
-// ✅ Add product
+// ✅ Add Product
 app.post('/addproduct', async (req, res) => {
     const products = await Product.find({});
     const id = products.length > 0 ? products[products.length - 1].id + 1 : 1;
@@ -77,19 +77,19 @@ app.post('/addproduct', async (req, res) => {
     res.json({ success: true, name: req.body.name });
 });
 
-// ✅ Remove product
+// ✅ Remove Product
 app.post('/removeproduct', async (req, res) => {
     await Product.findOneAndDelete({ id: req.body.id });
     res.json({ success: true, name: req.body.name });
 });
 
-// ✅ Get all products
+// ✅ Get All Products
 app.get('/allproducts', async (req, res) => {
     const products = await Product.find({});
     res.send(products);
 });
 
-// ✅ User schema
+// ✅ User Schema
 const User = mongoose.model("Users", {
     name: String,
     email: { type: String, unique: true },
@@ -132,7 +132,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// ✅ Fetch user middleware
+// ✅ Auth Middleware
 const fetchUser = async (req, res, next) => {
     const token = req.header('auth-token');
     if (!token) return res.status(401).send({ errors: "Please authenticate using a valid token" });
@@ -146,7 +146,7 @@ const fetchUser = async (req, res, next) => {
     }
 };
 
-// ✅ Cart endpoints
+// ✅ Cart APIs
 app.post('/addtocart', fetchUser, async (req, res) => {
     const userData = await User.findOne({ _id: req.user.id });
     userData.cartData[req.body.itemId] += 1;
@@ -168,7 +168,7 @@ app.post('/getcart', fetchUser, async (req, res) => {
     res.json(userData.cartData);
 });
 
-// ✅ New collections and popular
+// ✅ New Collections & Popular
 app.get('/newcollections', async (req, res) => {
     const products = await Product.find({});
     const newcollection = products.slice(-8);
@@ -180,7 +180,7 @@ app.get('/popularinwomen', async (req, res) => {
     res.send(products.slice(0, 4));
 });
 
-// ✅ Order schema
+// ✅ Order Schema
 const Order = mongoose.model("Order", {
     customerName: String,
     customerEmail: String,
@@ -195,7 +195,7 @@ const Order = mongoose.model("Order", {
     timestamp: { type: Date, default: Date.now }
 });
 
-// ✅ Place order
+// ✅ Place Order
 app.post("/placeorder", async (req, res) => {
     const order = new Order(req.body);
     try {
@@ -206,7 +206,7 @@ app.post("/placeorder", async (req, res) => {
     }
 });
 
-// ✅ Get all orders
+// ✅ Get All Orders
 app.get("/orders", async (req, res) => {
     try {
         const orders = await Order.find().sort({ timestamp: -1 });
@@ -216,13 +216,13 @@ app.get("/orders", async (req, res) => {
     }
 });
 
-// ✅ Handle unmatched routes with CORS
+// ✅ 404 Handler
 app.use((req, res) => {
     res.header("Access-Control-Allow-Origin", "https://e-commerce-application-1-4ktx.onrender.com");
     res.status(404).send("Not Found");
 });
 
-// ✅ Start server
+// ✅ Start Server
 app.listen(port, (error) => {
     if (!error) console.log("Server running on port " + port);
     else console.log("Error: " + error);
