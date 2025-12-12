@@ -974,7 +974,18 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 4000;
 app.use(express.json());
-app.use(cors());
+// app.use(cors());
+
+aapp.use(cors({
+  origin: [
+    "https://e-commerce-mernappfrontend1.onrender.com",
+    "https://e-commerce-application-adminpanel.onrender.com"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
+
 
 // ------------ DB connect ------------
 mongoose
