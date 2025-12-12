@@ -8,10 +8,13 @@ import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import path from 'path';
 import multer from 'multer';
-import { v2 as cloudinary } from 'cloudinary';
+import streamifier from 'streamifier';
+import cloudinaryPkg from 'cloudinary';
 
+const { v2: cloudinary } = cloudinaryPkg;
+
+// multer uses memory storage
 const upload = multer({ storage: multer.memoryStorage() });
-
 
 const port = process.env.PORT || 4000;
 
@@ -43,36 +46,35 @@ mongoose
 
 // ---------------- MULTER + CLOUDINARY STORAGE ----------------
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'ecommerce_images',
-    allowed_formats: ['jpg', 'jpeg', 'png'],
-  },
-});
 
-
-
-
+import streamifier from 'streamifier';
 
 app.post('/upload', upload.single('product'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).send('No file uploaded');
+    if (!req.file)
+      return res.status(400).json({ success: 0, message: "No file uploaded" });
 
-    const result = await cloudinary.uploader.upload_stream(
-      { folder: 'ecommerce_images' },
+    // Cloudinary upload_stream
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: "ecommerce_images" },
       (error, result) => {
-        if (error) return res.status(500).json(error);
-        res.json({ success: 1, image_url: result.secure_url });
+        if (error) {
+          return res.status(500).json({ success: 0, error });
+        }
+        return res.json({
+          success: 1,
+          image_url: result.secure_url,
+        });
       }
-    );
+      );
 
-    streamifier.createReadStream(req.file.buffer).pipe(result);
+    // Convert buffer to stream → upload to Cloudinary
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: 0, message: error.message });
   }
 });
-
 // ------------ Models ------------
 const Product = mongoose.model("Product", {
   id: Number,
