@@ -5,7 +5,6 @@ dotenv.config();
 import express from 'express';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import multer from 'multer';
 import cors from 'cors';
 import path from 'path';
 import multer from 'multer';
