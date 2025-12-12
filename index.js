@@ -976,7 +976,7 @@ const port = process.env.PORT || 4000;
 app.use(express.json());
 // app.use(cors());
 
-aapp.use(cors({
+app.use(cors({
   origin: [
     "https://e-commerce-mernappfrontend1.onrender.com",
     "https://e-commerce-application-adminpanel.onrender.com"
