@@ -10,9 +10,8 @@ import cors from 'cors';
 import path from 'path';
 
 import { v2 as cloudinary } from 'cloudinary';
-import pkg from 'multer-storage-cloudinary';
-
-const { CloudinaryStorage } = pkg
+import multerStorageCloudinary from 'multer-storage-cloudinary';
+const { CloudinaryStorage } = multerStorageCloudinary;
 
 
 const port = process.env.PORT || 4000;
