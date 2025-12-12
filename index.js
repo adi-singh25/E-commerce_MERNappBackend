@@ -1,8 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
-const multer = require("multer");
-const { storage } = require("./cloudinary");   // ← Cloudinary storage
+const multer = require("multer");  // ← Cloudinary storage
 const cors = require("cors");
 const path = require("path");
 const port = process.env.PORT || 4000;
