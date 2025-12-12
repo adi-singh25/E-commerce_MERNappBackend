@@ -6,6 +6,7 @@ const { storage } = require("./cloudinary");   // ← Cloudinary storage
 const cors = require("cors");
 const path = require("path");
 const port = process.env.PORT || 4000;
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const app = express();
 
@@ -28,49 +29,38 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connect error:", err));
 
-// ------------ Cloudinary Upload Route ------------
+ cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// ---------- Multer setup ----------
+// ---------------- MULTER + CLOUDINARY STORAGE ----------------
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "ecommerce_products",
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+  },
+});
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-
-app.post("/upload", upload.single("product"), async (req, res) => {
+// ---------------- UPLOAD ROUTE ----------------
+app.post("/upload", upload.single("product"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: 0, message: "No file uploaded" });
     }
 
-    const streamUpload = () => {
-      return new Promise((resolve, reject) => {
-        let stream = cloudinary.uploader.upload_stream(
-          {
-            folder: "ecommerce_products",
-            resource_type: "image",
-          },
-          (error, result) => {
-            if (result) resolve(result);
-            else reject(error);
-          }
-        );
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
-      });
-    };
-
-    const uploadResult = await streamUpload();
-
     return res.json({
       success: 1,
-      image_url: uploadResult.secure_url,
+      image_url: req.file.path, // Cloudinary HTTPS URL
     });
 
-  } catch (error) {
-    console.error("Cloudinary Upload Error:", error);
-    return res.status(500).json({
-      success: 0,
-      message: "Upload failed",
-      error,
-    });
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
+    return res.status(500).json({ success: 0, error: "Upload failed" });
   }
 });
 // ------------ Models ------------
