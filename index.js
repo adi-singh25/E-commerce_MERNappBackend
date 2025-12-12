@@ -8,11 +8,10 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import cors from 'cors';
 import path from 'path';
-
+import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
-import multerStorageCloudinary from 'multer-storage-cloudinary';
 
-const { CloudinaryStorage } = multerStorageCloudinary;
+const upload = multer({ storage: multer.memoryStorage() });
 
 
 const port = process.env.PORT || 4000;
@@ -53,16 +52,26 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({ storage });
 
 
-// Example upload route
-app.post('/upload', upload.single('product'), (req, res) => {
-  if (!req.file) return res.status(400).json({ success: 0, message: 'No file uploaded' });
-  res.json({
-    success: 1,
-    image_url: req.file.path, // Cloudinary URL
-  });
+
+
+app.post('/upload', upload.single('product'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).send('No file uploaded');
+
+    const result = await cloudinary.uploader.upload_stream(
+      { folder: 'ecommerce_images' },
+      (error, result) => {
+        if (error) return res.status(500).json(error);
+        res.json({ success: 1, image_url: result.secure_url });
+      }
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // ------------ Models ------------
