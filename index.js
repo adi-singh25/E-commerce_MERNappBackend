@@ -995,6 +995,19 @@ mongoose
   .catch((err) => console.error("MongoDB connect error:", err));
 
 // ------------ Cloudinary Upload Route ------------
+
+// ---------- Multer setup ----------
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}_${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage: storage });
+
 app.post("/upload", upload.single("product"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: 0, message: "No file uploaded" });
