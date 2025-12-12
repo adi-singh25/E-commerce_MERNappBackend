@@ -8,9 +8,11 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import cors from 'cors';
 import path from 'path';
-import { v2 as cloudinary } from "cloudinary";
+
+import { v2 as cloudinary } from 'cloudinary';
 import pkg from 'multer-storage-cloudinary';
-const { CloudinaryStorage } = pkg;
+
+const { CloudinaryStorage } = pkg
 
 
 const port = process.env.PORT || 4000;
@@ -42,34 +44,27 @@ mongoose
 });
 
 // ---------------- MULTER + CLOUDINARY STORAGE ----------------
+
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "ecommerce_products",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    folder: 'ecommerce_images',
+    allowed_formats: ['jpg', 'jpeg', 'png'],
   },
 });
 
 const upload = multer({ storage });
 
-// ---------------- UPLOAD ROUTE ----------------
-app.post("/upload", upload.single("product"), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: 0, message: "No file uploaded" });
-    }
 
-    return res.json({
-      success: 1,
-      image_url: req.file.path, // Cloudinary HTTPS URL
-    });
-    // ddjss
-
-  } catch (err) {
-    console.error("UPLOAD ERROR:", err);
-    return res.status(500).json({ success: 0, error: "Upload failed" });
-  }
+// Example upload route
+app.post('/upload', upload.single('product'), (req, res) => {
+  if (!req.file) return res.status(400).json({ success: 0, message: 'No file uploaded' });
+  res.json({
+    success: 1,
+    image_url: req.file.path, // Cloudinary URL
+  });
 });
+
 // ------------ Models ------------
 const Product = mongoose.model("Product", {
   id: Number,
