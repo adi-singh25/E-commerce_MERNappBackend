@@ -47,7 +47,6 @@ mongoose
 // ---------------- MULTER + CLOUDINARY STORAGE ----------------
 
 
-import streamifier from 'streamifier';
 
 app.post('/upload', upload.single('product'), async (req, res) => {
   try {
