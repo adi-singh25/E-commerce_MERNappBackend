@@ -970,8 +970,9 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
-
+const { storage } = require("./cloudinary");
 const app = express();
+
 const port = process.env.PORT || 4000;
 app.use(express.json());
 // app.use(cors());
@@ -993,14 +994,17 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connect error:", err));
 
-// ------------ Multer (image upload) ------------
-const storage = multer.diskStorage({
-  destination: "./upload/images",
-  filename: (req, file, cb) =>
-    cb(null, `${file.originalname}_${Date.now()}${path.extname(file.originalname)}`),
+// ------------ Cloudinary Upload Route ------------
+app.post("/upload", upload.single("product"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: 0, message: "No file uploaded" });
+  }
+
+  res.json({
+    success: 1,
+    image_url: req.file.path,  // Cloudinary auto-generates HTTPS URL
+  });
 });
-const upload = multer({ storage });
-app.use("/images", express.static("upload/images"));
 
 // ------------ Models ------------
 const Product = mongoose.model("Product", {
