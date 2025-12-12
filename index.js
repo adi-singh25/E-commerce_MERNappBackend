@@ -458,7 +458,7 @@ app.get("/orders", async (req, res) => {
 });
 
 // ======= Start server =======
-app.listen(port, () => {
-  console.log("Server Running on port " + port);
+app.listen(PORT, () => {
+  console.log("Server Running on port " + PORT);
 });
 
