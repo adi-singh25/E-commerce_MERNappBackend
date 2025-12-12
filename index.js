@@ -1,18 +1,24 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import cors from 'cors';
 import path from 'path';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+
+import pkg from 'multer-storage-cloudinary';
+const { CloudinaryStorage } = pkg;
 
 const port = process.env.PORT || 4000;
 
 const app = express();
 app.use(express.json());
+
 app.use(cors({
   origin: [
     "https://e-commerce-mernappfrontend1.onrender.com",
