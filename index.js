@@ -57,6 +57,7 @@ app.post("/upload", upload.single("product"), (req, res) => {
       success: 1,
       image_url: req.file.path, // Cloudinary HTTPS URL
     });
+    // ddjss
 
   } catch (err) {
     console.error("UPLOAD ERROR:", err);
