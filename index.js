@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
@@ -8,6 +9,7 @@ const port = process.env.PORT || 4000;
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const app = express();
+app.use(express.json());
 
 // app.use(cors());
 
