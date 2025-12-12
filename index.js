@@ -1,16 +1,13 @@
-
-
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
-const path = require("path");
+const { storage } = require("./cloudinary");   // ← Cloudinary storage
 const cors = require("cors");
-const { storage } = require("./cloudinary");
+const path = require("path");
+
 const app = express();
 
-const port = process.env.PORT || 4000;
-app.use(express.json());
 // app.use(cors());
 
 app.use(cors({
@@ -33,28 +30,49 @@ mongoose
 // ------------ Cloudinary Upload Route ------------
 
 // ---------- Multer setup ----------
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}_${file.originalname}`);
-  }
-});
 
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-app.post("/upload", upload.single("product"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: 0, message: "No file uploaded" });
+
+app.post("/upload", upload.single("product"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: 0, message: "No file uploaded" });
+    }
+
+    const streamUpload = () => {
+      return new Promise((resolve, reject) => {
+        let stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "ecommerce_products",
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+    };
+
+    const uploadResult = await streamUpload();
+
+    return res.json({
+      success: 1,
+      image_url: uploadResult.secure_url,
+    });
+
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    return res.status(500).json({
+      success: 0,
+      message: "Upload failed",
+      error,
+    });
   }
-
-  res.json({
-    success: 1,
-    image_url: req.file.path,  // Cloudinary auto-generates HTTPS URL
-  });
 });
-
 // ------------ Models ------------
 const Product = mongoose.model("Product", {
   id: Number,
