@@ -5,6 +5,7 @@ const multer = require("multer");
 const { storage } = require("./cloudinary");   // ← Cloudinary storage
 const cors = require("cors");
 const path = require("path");
+const port = process.env.PORT || 4000;
 
 const app = express();
 
@@ -458,7 +459,7 @@ app.get("/orders", async (req, res) => {
 });
 
 // ======= Start server =======
-app.listen(PORT, () => {
-  console.log("Server Running on port " + PORT);
+app.listen(port, () => {
+  console.log("Server Running on port " + port);
 });
 
