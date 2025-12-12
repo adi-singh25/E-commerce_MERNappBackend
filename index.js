@@ -48,26 +48,30 @@ mongoose
 
 // ---------------- MULTER + CLOUDINARY STORAGE ----------------
 
-app.post('/upload', upload.single('product'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: 0, message: "No file uploaded" });
-  }
-
-  const uploadStream = cloudinary.uploader.upload_stream(
-    { folder: "ecommerce_images" },
-    (error, result) => {
-      if (error) {
-        console.error("Cloudinary Error:", error);
-        return res.status(500).json({ success: 0, error });
-      }
-
-      return res.json({ success: 1, image_url: result.secure_url });
+app.post("/upload", upload.single("product"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: 0, message: "No file uploaded" });
     }
-  );
 
-  streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: "ecommerce_images" },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary Error:", error);
+          return res.status(500).json({ success: 0, error });
+        }
+
+        return res.json({ success: 1, image_url: result.secure_url });
+      }
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+  } catch (err) {
+    console.error("Upload Error:", err);
+    return res.status(500).json({ success: 0, error: err.message });
+  }
 });
-
 // ------------ Models ------------
 const Product = mongoose.model("Product", {
   id: Number,
