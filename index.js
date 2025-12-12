@@ -8,7 +8,9 @@ import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import path from 'path';
 import multer from 'multer';
-import streamifier from 'streamifier';
+import streamifier from "streamifier";
+
+
 import cloudinaryPkg from 'cloudinary';
 
 const { v2: cloudinary } = cloudinaryPkg;
@@ -46,34 +48,26 @@ mongoose
 
 // ---------------- MULTER + CLOUDINARY STORAGE ----------------
 
-
-
-app.post('/upload', upload.single('product'), async (req, res) => {
-  try {
-    if (!req.file)
-      return res.status(400).json({ success: 0, message: "No file uploaded" });
-
-    // Cloudinary upload_stream
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: "ecommerce_images" },
-      (error, result) => {
-        if (error) {
-          return res.status(500).json({ success: 0, error });
-        }
-        return res.json({
-          success: 1,
-          image_url: result.secure_url,
-        });
-      }
-      );
-
-    // Convert buffer to stream → upload to Cloudinary
-    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
-
-  } catch (error) {
-    res.status(500).json({ success: 0, message: error.message });
+app.post('/upload', upload.single('product'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: 0, message: "No file uploaded" });
   }
+
+  const uploadStream = cloudinary.uploader.upload_stream(
+    { folder: "ecommerce_images" },
+    (error, result) => {
+      if (error) {
+        console.error("Cloudinary Error:", error);
+        return res.status(500).json({ success: 0, error });
+      }
+
+      return res.json({ success: 1, image_url: result.secure_url });
+    }
+  );
+
+  streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
 });
+
 // ------------ Models ------------
 const Product = mongoose.model("Product", {
   id: Number,
